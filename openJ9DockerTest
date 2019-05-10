@@ -99,3 +99,9 @@ docker run -it -v /Projects/temp/spring-boot-example:/app/spring-boot-example -p
 java -jar /app/spring-boot-example/target/spring-boot-example-0.0.1-SNAPSHOT.jar
 
 等待一段时间，调用几次端点，并执行一个 GC，之后我测量内存使用情况。
+CONTAINER ID        IMAGE                                      COMMAND                  CREATED             STATUS                       PORTS                           
+99fd04846f99        adoptopenjdk/openjdk8-openj9:alpine-slim   "bin/bash"               2 minutes ago       Created                      0.0.0.0:9089->8086/tcp                                                                        laughing_euler         0B (virtual 98.1MB)
+c15c908f450c        adoptopenjdk/openjdk8-openj9               "bin/bash"               6 minutes ago       Exited (130) 5 minutes ago                                                                                                 youthful_cori          12.2kB (virtual 361MB)
+87f3d4e447ba        adoptopenjdk/openjdk8                      "bin/bash"               8 minutes ago       Exited (130) 7 minutes ago                                                                                                 amazing_raman          12.2kB (virtual 341MB)
+81b7de657c4d        openjdk:8-slim                             "bin/bash"               11 minutes ago      Exited (130) 9 minutes ago                                                                                                 silly_knuth            12.4kB (virtual 243MB)
+
