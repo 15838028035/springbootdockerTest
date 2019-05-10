@@ -1,0 +1,99 @@
+
+
+测试
+
+在 Docker 时代之前，比较不同的 JVM 版本是相对困难的。你需要下载、安装、编写脚本和运行所有相关项。但现在很多提前制作好的镜像可以通过在线获得。
+
+这里是我关于如何测试 JVM 的想法：
+
+    创建一个简单的 Spring Boot 应用程序
+
+    在各种 Docker 镜像中启动该应用程序
+
+    在启动和 GC 后测量内存使用情况
+
+    测量运行小型 CPU 密集型测试所需的时间
+
+这绝不是一个彻底的测试或基准测试，但它应该能给我们一个我们可以从虚拟机中获得什么的大致想法。
+
+Spring Boot 应用
+
+我创建的 Spring Boot 应用包含了下面的端点：
+
+    一个 REST 端点调用 GC（ 尽量让它合理）
+
+    一个 REST 端点创建了 1000 个大 型随机数组并对其排序，返回运行时长（单位为 ms）
+
+下面列出了 CPU 测试：
+
+@RestController
+public class LoadTestController {
+
+    @RequestMapping("/loadtest")
+    public LoadTestResult loadtest() {
+
+        long before = System.currentTimeMillis();
+
+        Random random = new Random();
+
+        for(int i = 0; i < 1000; i++) {
+            long[] data = new long[1000000];
+            for(int l = 0; l < data.length; l++) {
+                data[l] = random.nextLong();
+            }
+            Arrays.sort(data);
+        }
+
+        return new LoadTestResult(System.currentTimeMillis() - before);
+    }
+}
+
+
+
+JVM 镜像
+
+我决定对以下镜像进行测试。
+
+首先我们有 8/9/10/11 版本的（轻量级） openjdk 镜像：
+
+    openjdk:8-slim
+
+    openjdk:9-slim
+
+    openjdk:10-slim
+
+    openjdk:11-slim
+
+接下来是 8/9/10 版本的 adoptopenjdk 镜像：
+
+    adoptopenjdk/openjdk8
+
+    adoptopenjdk/openjdk9
+
+    adoptopenjdk/openjdk10
+
+之后是 OpenJ9，也是由 adoptopenjdk 为 8/9 版本所提供的，同时包含为 9 发布的每日构建版（相关内容请查看我之前的博文）：
+
+    adoptopenjdk/openjdk8-openj9
+
+    adoptopenjdk/openjdk9-openj9
+
+    adoptopenjdk/openjdk9-openj9:nightly
+
+同时我决定也引入 IBM 自家的 J9 镜像：
+
+    ibmcom/ibmjava:8-jre
+
+使用 Docker 进行测试
+
+在构建我的 Spring Boot 应用之后，我使用下面命令启动了每个 Docker 镜像：
+
+docker run -it -v /Projects/temp/spring-boot-example:/app/spring-boot-example -p 8080:8080 IMAGE_NAME /bin/bash
+
+我将 “spring-boot-example” 项目目录映射到了 “/apps/spring-boot-example”，然后我就可以启动容器中的 JAR 文件。同时我将端口 8080 转发到我的主机，这样我就可以调用这些端点。
+
+下一步，在容器内部，我启动了 Spring Boot 应用：
+
+java -jar /app/spring-boot-example/target/spring-boot-example-0.0.1-SNAPSHOT.jar
+
+等待一段时间，调用几次端点，并执行一个 GC，之后我测量内存使用情况。
