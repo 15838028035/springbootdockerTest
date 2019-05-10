@@ -79,6 +79,8 @@ JVM 镜像
     adoptopenjdk/openjdk9-openj9
 
     adoptopenjdk/openjdk9-openj9:nightly
+    
+    adoptopenjdk/openjdk8-openj9:alpine-slim
 
 同时我决定也引入 IBM 自家的 J9 镜像：
 
